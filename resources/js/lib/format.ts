@@ -6,6 +6,36 @@ const dateTimeFormat = new Intl.DateTimeFormat('es-PE', {
 
 const relativeFormat = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
 
+const moneyFormat = new Intl.NumberFormat('es-PE', {
+    style: 'currency',
+    currency: 'PEN',
+    minimumFractionDigits: 2,
+});
+
+const quantityFormat = new Intl.NumberFormat('es-PE', {
+    maximumFractionDigits: 3,
+});
+
+/** Monto en soles: "S/ 1,234.50". Acepta números o strings decimales del backend. */
+export function formatMoney(value: string | number | null | undefined): string {
+    if (value === null || value === undefined || value === '') {
+        return '—';
+    }
+
+    return moneyFormat.format(Number(value));
+}
+
+/** Cantidad sin ceros sobrantes: "12", "1.5", "0.125". */
+export function formatQuantity(
+    value: string | number | null | undefined,
+): string {
+    if (value === null || value === undefined || value === '') {
+        return '—';
+    }
+
+    return quantityFormat.format(Number(value));
+}
+
 export function formatDateTime(iso: string | null | undefined): string {
     return iso ? dateTimeFormat.format(new Date(iso)) : '—';
 }

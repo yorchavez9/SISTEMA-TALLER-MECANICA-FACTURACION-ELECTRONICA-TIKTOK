@@ -27,6 +27,15 @@ final class RoleRegistry
             'activity_logs.view' => 'Ver el registro de actividad',
             'company_settings.manage' => 'Configurar el taller (datos fiscales, establecimientos, series, detracción)',
             'company_users.manage' => 'Administrar los usuarios del taller',
+            'customers.view' => 'Ver clientes',
+            'customers.manage' => 'Registrar, editar y eliminar clientes',
+            'vehicles.view' => 'Ver vehículos',
+            'vehicles.manage' => 'Registrar, editar y eliminar vehículos',
+            'services.view' => 'Ver servicios del taller',
+            'services.manage' => 'Administrar servicios del taller',
+            'products.view' => 'Ver productos y repuestos',
+            'products.manage' => 'Administrar productos y repuestos',
+            'stock.adjust' => 'Ajustar el stock de productos',
         ];
     }
 
@@ -41,9 +50,18 @@ final class RoleRegistry
     {
         return [
             UserRole::SuperAdmin->value => [],
-            UserRole::CompanyAdmin->value => ['activity_logs.view', 'company_settings.manage', 'company_users.manage'],
-            UserRole::Cashier->value => [],
-            UserRole::Mechanic->value => [],
+            UserRole::CompanyAdmin->value => [
+                'activity_logs.view', 'company_settings.manage', 'company_users.manage',
+                'customers.view', 'customers.manage', 'vehicles.view', 'vehicles.manage',
+                'services.view', 'services.manage', 'products.view', 'products.manage', 'stock.adjust',
+            ],
+            UserRole::Cashier->value => [
+                'customers.view', 'customers.manage', 'vehicles.view', 'vehicles.manage',
+                'services.view', 'products.view',
+            ],
+            UserRole::Mechanic->value => [
+                'customers.view', 'vehicles.view', 'services.view', 'products.view',
+            ],
         ];
     }
 

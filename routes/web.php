@@ -5,6 +5,10 @@ use App\Http\Controllers\Admin\CompanyApiLogController;
 use App\Http\Controllers\Admin\CompanyBillingController;
 use App\Http\Controllers\Admin\CompanyContextController;
 use App\Http\Controllers\Admin\CompanyController;
+use App\Http\Controllers\Catalog\CustomerController;
+use App\Http\Controllers\Catalog\ProductController;
+use App\Http\Controllers\Catalog\ServiceController;
+use App\Http\Controllers\Catalog\VehicleController;
 use App\Http\Controllers\CompanySettings\BillingStatusController;
 use App\Http\Controllers\CompanySettings\DetractionController;
 use App\Http\Controllers\CompanySettings\EstablishmentController;
@@ -69,6 +73,37 @@ Route::middleware('auth')->group(function () {
             Route::post('credentials/recover/verify', [CompanyBillingController::class, 'verifyRecovery'])->name('credentials.verify');
             Route::delete('tenant', [CompanyBillingController::class, 'destroyTenant'])->name('tenant.destroy');
         });
+    });
+
+    /*
+    | Maestros del taller (empresa actual). La autorización está en las policies.
+    */
+    Route::middleware('company')->group(function () {
+        Route::get('customers/search', [CustomerController::class, 'search'])->middleware('throttle:120,1')->name('customers.search');
+        Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
+        Route::post('customers', [CustomerController::class, 'store'])->name('customers.store');
+        Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+        Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+        Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+
+        Route::get('vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
+        Route::post('vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
+        Route::put('vehicles/{vehicle}', [VehicleController::class, 'update'])->name('vehicles.update');
+        Route::delete('vehicles/{vehicle}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
+
+        Route::get('services', [ServiceController::class, 'index'])->name('services.index');
+        Route::post('services', [ServiceController::class, 'store'])->name('services.store');
+        Route::put('services/{service}', [ServiceController::class, 'update'])->name('services.update');
+        Route::delete('services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
+
+        Route::get('products', [ProductController::class, 'index'])->name('products.index');
+        Route::get('products/create', [ProductController::class, 'create'])->name('products.create');
+        Route::post('products', [ProductController::class, 'store'])->name('products.store');
+        Route::get('products/{product}', [ProductController::class, 'show'])->name('products.show');
+        Route::get('products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+        Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+        Route::post('products/{product}/stock', [ProductController::class, 'adjustStock'])->middleware('throttle:60,1')->name('products.stock.adjust');
     });
 
     /*

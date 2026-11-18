@@ -1,5 +1,14 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Building2, History, LayoutDashboard, Settings2 } from 'lucide-react';
+import {
+    Building2,
+    Car,
+    History,
+    LayoutDashboard,
+    Package,
+    Settings2,
+    Users,
+    Wrench,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -16,6 +25,10 @@ import { useCan } from '@/hooks/use-can';
 import { dashboard } from '@/routes';
 import { index as activityLogs } from '@/routes/activity-logs';
 import { index as companiesIndex } from '@/routes/admin/companies';
+import { index as customersIndex } from '@/routes/customers';
+import { index as productsIndex } from '@/routes/products';
+import { index as servicesIndex } from '@/routes/services';
+import { index as vehiclesIndex } from '@/routes/vehicles';
 import { edit as companyProfile } from '@/routes/company-settings/profile';
 import { index as companyUsers } from '@/routes/company-settings/users';
 import type { NavGroup } from '@/types';
@@ -40,6 +53,35 @@ export function AppSidebar() {
                     title: 'Dashboard',
                     href: dashboard(),
                     icon: LayoutDashboard,
+                },
+            ],
+        },
+        {
+            title: 'Maestros',
+            items: [
+                {
+                    title: 'Clientes',
+                    href: customersIndex(),
+                    icon: Users,
+                    visible: company !== null && can('customers.view'),
+                },
+                {
+                    title: 'Vehículos',
+                    href: vehiclesIndex(),
+                    icon: Car,
+                    visible: company !== null && can('vehicles.view'),
+                },
+                {
+                    title: 'Servicios',
+                    href: servicesIndex(),
+                    icon: Wrench,
+                    visible: company !== null && can('services.view'),
+                },
+                {
+                    title: 'Productos y repuestos',
+                    href: productsIndex(),
+                    icon: Package,
+                    visible: company !== null && can('products.view'),
                 },
             ],
         },

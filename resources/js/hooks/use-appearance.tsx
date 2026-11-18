@@ -1,6 +1,4 @@
-import { router, usePage } from '@inertiajs/react';
 import { useSyncExternalStore } from 'react';
-import { update as updateAppearanceRoute } from '@/routes/appearance';
 
 export type ResolvedAppearance = 'light' | 'dark';
 export type Appearance = ResolvedAppearance | 'system';
@@ -96,9 +94,12 @@ export function initializeTheme(): void {
     mediaQuery()?.addEventListener('change', handleSystemThemeChange);
 }
 
+/**
+ * Tema actual. No depende de Inertia (se usa también fuera de la página,
+ * por ejemplo en <Toaster>). La preferencia se guarda en la cuenta desde
+ * el selector de apariencia (appearance-tabs).
+ */
 export function useAppearance(): UseAppearanceReturn {
-    const { auth } = usePage().props;
-
     const appearance: Appearance = useSyncExternalStore(
         subscribe,
         () => currentAppearance,
@@ -121,19 +122,6 @@ export function useAppearance(): UseAppearanceReturn {
         setCookie('appearance', mode);
         applyTheme(mode);
         notify();
-
-        // Persistir la preferencia en la cuenta del usuario.
-        if (auth.user && auth.user.theme !== mode) {
-            router.patch(
-                updateAppearanceRoute.url(),
-                { theme: mode },
-                {
-                    preserveScroll: true,
-                    preserveState: true,
-                    only: ['auth'],
-                },
-            );
-        }
     };
 
     return { appearance, resolvedAppearance, updateAppearance } as const;
