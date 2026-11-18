@@ -1,0 +1,42 @@
+import { Link } from '@inertiajs/react';
+import {
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { useCurrentUrl } from '@/hooks/use-current-url';
+import type { NavItem } from '@/types';
+
+export function NavMain({ title, items }: { title: string; items: NavItem[] }) {
+    const { isCurrentOrParentUrl } = useCurrentUrl();
+    const visibleItems = items.filter((item) => item.visible !== false);
+
+    if (visibleItems.length === 0) {
+        return null;
+    }
+
+    return (
+        <SidebarGroup className="px-2 py-1">
+            <SidebarGroupLabel>{title}</SidebarGroupLabel>
+            <SidebarMenu>
+                {visibleItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                            asChild
+                            isActive={isCurrentOrParentUrl(item.href)}
+                            tooltip={{ children: item.title }}
+                            className="h-9 text-[0.9375rem]"
+                        >
+                            <Link href={item.href} prefetch>
+                                {item.icon && <item.icon />}
+                                <span>{item.title}</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                ))}
+            </SidebarMenu>
+        </SidebarGroup>
+    );
+}

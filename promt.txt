@@ -1,0 +1,849 @@
+# ANÁLISIS Y PLAN DE IMPLEMENTACIÓN – SISTEMA DE TALLER MECÁNICO CON FACTURACIÓN ELECTRÓNICA SUNAT PERÚ
+
+Actúa como un **arquitecto de software senior y especialista en desarrollo de sistemas empresariales, gestión de talleres mecánicos, Laravel, React, Inertia.js, MySQL y facturación electrónica SUNAT Perú**.
+
+Tengo previsto desarrollar un sistema de gestión para un **taller mecánico**, utilizando mi propia API de facturación electrónica SUNAT Perú.
+
+Antes de comenzar a programar, necesito que analices exhaustivamente la colección de Postman de mi API y, a partir de sus funcionalidades reales, elabores un análisis técnico y un plan de implementación detallado, organizado por módulos y fases.
+
+**IMPORTANTE:** El sistema debe ser práctico, sencillo de utilizar y enfocado en las operaciones esenciales de un taller mecánico. No quiero desarrollar un ERP demasiado complejo ni agregar funcionalidades innecesarias.
+
+---
+
+## 1. Stack tecnológico obligatorio
+
+- **Backend:** Laravel.
+- **Frontend:** React.
+- **Integración frontend-backend:** Inertia.js.
+- **Base de datos:** MySQL.
+- **Componentes UI:** shadcn/ui.
+- **Estilos:** Tailwind CSS.
+- **Iconografía:** Lucide React.
+
+Utilizar una arquitectura modular, organizada, escalable y fácil de mantener.
+
+Aprovechar las funcionalidades nativas de Laravel, Eloquent ORM, migraciones, controladores, servicios, Form Requests, middleware y políticas de autorización.
+
+En el frontend, utilizar React con Inertia.js y componentes reutilizables.
+
+**shadcn/ui será la biblioteca estándar de componentes de toda la aplicación.** No incorporar otras bibliotecas de componentes visuales que dupliquen sus funcionalidades.
+
+---
+
+## 2. Análisis exhaustivo de la colección de Postman
+
+Primero, examina toda la colección de Postman de mi API de facturación electrónica SUNAT Perú.
+
+No comiences proponiendo implementaciones sin haber comprendido cómo funciona realmente la API.
+
+Analiza y documenta:
+
+1. Todos los endpoints disponibles.
+2. Métodos HTTP utilizados.
+3. Parámetros requeridos y opcionales.
+4. Estructura de las solicitudes (Request).
+5. Estructura de las respuestas (Response).
+6. Autenticación y configuración necesaria.
+7. Emisión de facturas electrónicas.
+8. Emisión de boletas electrónicas.
+9. Notas de crédito y notas de débito, si están disponibles.
+10. Generación y descarga de PDF.
+11. Obtención de XML.
+12. Obtención de CDR.
+13. Consulta del estado de los comprobantes.
+14. Resumen diario y comunicación de baja, si están disponibles.
+15. Consulta de RUC y DNI, si están disponibles.
+16. Manejo de errores y respuestas de SUNAT.
+17. Datos y configuraciones necesarios del emisor.
+18. Cualquier otra funcionalidad relevante que incluya la colección.
+
+Para cada endpoint importante, presenta:
+
+- Nombre y finalidad.
+- Método HTTP.
+- Ruta.
+- Parámetros.
+- Ejemplo de solicitud.
+- Ejemplo de respuesta.
+- Forma en que se utilizará desde el sistema de taller mecánico.
+
+**Regla fundamental:** No inventes endpoints, parámetros, funcionalidades ni respuestas. Si una funcionalidad no existe en la colección, indícalo expresamente.
+
+---
+
+## 3. Módulos funcionales del sistema
+
+Propón una implementación sencilla y organizada con los siguientes módulos:
+
+### 3.1. Dashboard
+
+Mostrar información resumida del taller:
+
+- Total de ventas.
+- Órdenes de trabajo registradas.
+- Órdenes pendientes.
+- Órdenes en proceso.
+- Órdenes finalizadas.
+- Ingresos del día y del mes.
+- Actividad reciente.
+- Resumen de comprobantes emitidos.
+
+Evitar un dashboard recargado con demasiadas tarjetas y gráficos innecesarios.
+
+### 3.2. Clientes
+
+- Registrar clientes.
+- Editar información.
+- Consultar y buscar clientes.
+- Datos personales o empresariales.
+- Tipo y número de documento.
+- Dirección.
+- Teléfono.
+- Correo electrónico.
+
+### 3.3. Vehículos
+
+Cada vehículo debe estar asociado a un cliente.
+
+Datos principales:
+
+- Placa.
+- Marca.
+- Modelo.
+- Año.
+- Color.
+- Kilometraje.
+- Características adicionales.
+- Observaciones.
+
+Permitir consultar los vehículos registrados de cada cliente.
+
+### 3.4. Servicios del taller
+
+Registrar los servicios que ofrece el taller:
+
+- Mantenimiento preventivo.
+- Cambio de aceite.
+- Reparación de motor.
+- Reparación de frenos.
+- Suspensión.
+- Diagnóstico.
+- Otros servicios.
+
+Cada servicio debe tener nombre, descripción, precio y estado.
+
+### 3.5. Productos y repuestos
+
+Administrar los productos utilizados en los trabajos del taller:
+
+- Nombre.
+- Código.
+- Descripción.
+- Precio de venta.
+- Costo.
+- Stock.
+- Unidad de medida.
+- Imagen del producto (campo opcional).
+- Estado.
+
+**Gestión de imágenes de productos:**
+
+Todos los productos deben contar con la posibilidad de tener una imagen asociada, pero el registro de esta imagen debe ser completamente opcional.
+
+Implementar las siguientes funcionalidades:
+
+- Permitir subir una imagen al registrar o editar un producto.
+- No exigir una imagen para guardar el producto.
+- Mostrar una vista previa antes de guardar.
+- Permitir reemplazar o eliminar la imagen posteriormente.
+- Aceptar formatos JPG, JPEG, PNG y WEBP.
+- Validar el formato y tamaño máximo del archivo desde el backend.
+- Utilizar el almacenamiento de archivos de Laravel.
+- Guardar únicamente la ruta o referencia de la imagen en MySQL, nunca el archivo binario.
+- Si un producto no tiene imagen, mostrar un placeholder o imagen predeterminada.
+- Mostrar las imágenes correctamente en formularios, listados, detalles y demás interfaces donde se visualicen productos.
+- Mantener las imágenes adaptables a diferentes tamaños de pantalla.
+- Al reemplazar o eliminar una imagen, gestionar correctamente el archivo anterior para evitar archivos innecesarios.
+- Validar los permisos de acceso y la seguridad de los archivos subidos.
+
+**Base de datos:** incorporar un campo nullable, por ejemplo `image`, en la tabla `products`. La columna no debe ser obligatoria y debe permitir registrar productos sin imagen.
+
+Considerar un componente reutilizable para la carga, vista previa y gestión de imágenes de productos.
+
+Implementar un control de inventario básico, sin desarrollar un sistema de almacén demasiado complejo.
+
+### 3.6. Órdenes de trabajo
+
+Este será uno de los módulos principales.
+
+Debe permitir:
+
+- Registrar una orden de trabajo.
+- Seleccionar al cliente.
+- Seleccionar el vehículo.
+- Registrar kilometraje de ingreso.
+- Describir el problema reportado.
+- Registrar diagnóstico.
+- Agregar servicios.
+- Agregar repuestos.
+- Registrar mano de obra.
+- Calcular subtotales y total.
+- Registrar observaciones.
+- Actualizar el estado de la orden.
+
+Estados sugeridos:
+
+- Pendiente.
+- En diagnóstico.
+- En proceso.
+- Finalizada.
+- Entregada.
+- Cancelada.
+
+Permitir consultar el detalle completo de cada orden.
+
+### 3.7. Ventas
+
+Implementar un módulo sencillo para gestionar las ventas generadas por el taller.
+
+Debe permitir:
+
+- Generar una venta a partir de una orden de trabajo finalizada.
+- Registrar ventas directas cuando corresponda.
+- Seleccionar cliente.
+- Agregar servicios y productos.
+- Calcular importes e impuestos.
+- Registrar el método de pago.
+- Consultar el historial de ventas.
+
+Evitar duplicar información entre órdenes de trabajo y ventas.
+
+### 3.8. Comprobantes electrónicos SUNAT
+
+Integrar la API propia para permitir:
+
+- Emitir facturas electrónicas.
+- Emitir boletas electrónicas.
+- Emitir notas de crédito y débito, si la API lo permite.
+- Consultar el estado del comprobante.
+- Descargar PDF.
+- Obtener XML.
+- Obtener CDR.
+- Mostrar mensajes y respuestas de la API.
+
+La emisión debe realizarse desde una venta registrada.
+
+No permitir que se genere un comprobante duplicado por una misma operación.
+
+### 3.9. Historial de servicios por vehículo
+
+Mostrar el historial de cada vehículo:
+
+- Órdenes de trabajo.
+- Servicios realizados.
+- Repuestos utilizados.
+- Kilometraje registrado.
+- Fecha de atención.
+- Importe.
+- Estado de cada trabajo.
+
+### 3.10. Reportes
+
+Considerar reportes básicos:
+
+- Ventas por fechas.
+- Servicios realizados.
+- Órdenes de trabajo.
+- Ingresos.
+- Productos y repuestos vendidos.
+- Comprobantes emitidos.
+
+### 3.11. Configuración
+
+- Datos de la empresa.
+- Configuración fiscal.
+- Series de comprobantes.
+- Certificado digital.
+- Configuración necesaria para utilizar la API SUNAT.
+
+---
+
+## 4. Flujo principal de trabajo
+
+Diseña el sistema tomando como referencia este flujo:
+
+1. Registrar al cliente.
+2. Registrar su vehículo.
+3. Crear una orden de trabajo.
+4. Registrar el problema reportado.
+5. Realizar el diagnóstico.
+6. Agregar servicios, repuestos y mano de obra.
+7. Actualizar el estado de la orden.
+8. Finalizar el trabajo.
+9. Generar la venta correspondiente.
+10. Emitir factura o boleta electrónica.
+11. Guardar la respuesta de la API.
+12. Permitir consultar el estado y descargar PDF, XML y CDR cuando estén disponibles.
+
+La arquitectura debe evitar duplicar datos entre órdenes de trabajo, ventas y comprobantes electrónicos.
+
+---
+
+## 5. Integración con mi API SUNAT: regla obligatoria
+
+Mi API propia ya gestiona internamente el procesamiento y envío de comprobantes electrónicos hacia SUNAT.
+
+Por lo tanto, **NO debes implementar Jobs, Queues ni Workers de Laravel para enviar o procesar facturas, boletas, notas de crédito o notas de débito**.
+
+Laravel debe consumir directamente mi API mediante solicitudes HTTP.
+
+Flujo obligatorio:
+
+1. Validar los datos de la venta.
+2. Obtener la configuración fiscal de la empresa correspondiente.
+3. Construir la solicitud según la estructura real de mi API.
+4. Consumir directamente el endpoint correspondiente.
+5. Recibir la respuesta.
+6. Interpretar el resultado.
+7. Guardar el identificador, estado y respuesta relevante.
+8. Consultar posteriormente el estado si la API devuelve un documento pendiente o en proceso.
+9. Habilitar la descarga de PDF, XML y CDR cuando estén disponibles.
+
+Consideraciones importantes:
+
+- No crear Jobs para el envío de comprobantes.
+- No crear Workers para el envío de comprobantes.
+- No duplicar el procesamiento que ya realiza mi API.
+- No reenviar automáticamente un comprobante si ocurre un timeout sin comprobar primero si la API llegó a procesarlo.
+- Evitar duplicidad de comprobantes.
+- Registrar errores y respuestas para facilitar el diagnóstico.
+- Si se necesita algún proceso programado para consultar estados pendientes, debe ser independiente del envío y no duplicar la lógica interna de la API.
+
+---
+
+## 6. Configuración de facturación electrónica por empresa
+
+El sistema debe permitir que cada empresa cliente configure sus propios datos fiscales desde su panel.
+
+**IMPORTANTE:** Los clientes NO deben ingresar API Key ni API Secret de mi API SUNAT.
+
+Mi API es un servicio interno que consume el backend Laravel.
+
+Cada empresa debe registrar sus propios datos de emisor:
+
+- RUC.
+- Razón social.
+- Nombre comercial.
+- Dirección fiscal.
+- Departamento.
+- Provincia.
+- Distrito.
+- Ubigeo.
+- Correo electrónico.
+- Teléfono.
+- Series de factura y boleta.
+- Series de notas de crédito y débito, si corresponden.
+- Establecimiento.
+- Certificado digital.
+- Contraseña del certificado.
+- Ambiente u otros parámetros que realmente requiera la API.
+
+El sistema debe permitir:
+
+- Registrar y editar los datos fiscales.
+- Subir el certificado digital.
+- Reemplazar el certificado.
+- Actualizar su contraseña.
+- Validar la configuración.
+- Probar la conexión o configuración, si la API lo permite.
+- Mostrar el estado de la configuración.
+- Mostrar la fecha de última actualización.
+
+### Seguridad de credenciales
+
+Las credenciales técnicas internas de mi API, como API Key y API Secret, si son necesarias, deben permanecer exclusivamente en el backend Laravel, mediante variables de entorno o un mecanismo seguro de gestión de secretos.
+
+Nunca deben:
+
+- Solicitarse al cliente.
+- Mostrarse en React.
+- Enviarse al navegador.
+- Exponerse en respuestas HTTP.
+- Registrarse en logs.
+
+El backend debe combinar las credenciales internas del servicio con los datos fiscales y el certificado de la empresa correspondiente.
+
+### Arquitectura multiempresa
+
+Cada empresa debe tener su propia configuración fiscal, certificado, series y comprobantes.
+
+Implementar aislamiento de datos mediante `company_id` o una estrategia equivalente.
+
+Garantizar que:
+
+- Una empresa no pueda visualizar información de otra.
+- Una empresa no pueda modificar configuraciones ajenas.
+- Cada comprobante utilice la configuración correcta.
+- Los comprobantes históricos conserven sus datos originales aunque posteriormente cambie la configuración fiscal.
+
+---
+
+## 7. Arquitectura y estructura de base de datos
+
+Propón una estructura inicial de base de datos considerando las entidades necesarias.
+
+Tablas sugeridas:
+
+- users
+- companies
+- customers
+- vehicles
+- services
+- products
+- work_orders
+- work_order_details
+- work_order_products
+- sales
+- sale_details
+- electronic_documents
+- company_billing_configurations
+- company_certificates
+- establishments
+- document_series
+- api_operation_logs
+
+Estas tablas son una referencia inicial. Ajusta, agrega o elimina entidades según el análisis funcional y técnico.
+
+Explica:
+
+- Finalidad de cada tabla.
+- Campos principales.
+- Relaciones.
+- Claves foráneas.
+- Índices importantes.
+- Reglas de integridad.
+- Separación de información por empresa.
+- Campo `image` nullable en `products` para almacenar la ruta de la imagen opcional.
+
+Los archivos de imagen deben almacenarse en el sistema de archivos y no directamente en MySQL.
+
+Evitar tablas innecesarias y duplicidad de información.
+
+---
+
+## 8. Frontend con shadcn/ui
+
+Utilizar shadcn/ui como biblioteca estándar de componentes en toda la aplicación.
+
+Priorizar sus componentes oficiales:
+
+- Button.
+- Input.
+- Textarea.
+- Select.
+- Checkbox.
+- Radio Group.
+- Dialog.
+- Alert Dialog.
+- Sheet.
+- Dropdown Menu.
+- Popover.
+- Calendar.
+- Tabs.
+- Table.
+- Badge.
+- Tooltip.
+- Skeleton.
+- Form y componentes relacionados.
+
+Crear componentes reutilizables para formularios, tablas, filtros, modales, confirmaciones y otros elementos comunes.
+
+Para productos, considerar un componente de carga de imágenes con vista previa, reemplazo y eliminación.
+
+No incorporar otras bibliotecas de componentes UI que dupliquen funcionalidades de shadcn/ui.
+
+Los formularios deben contar con validaciones, mensajes de error claros y estados de carga.
+
+---
+
+## 9. Diseño visual y experiencia de usuario
+
+Quiero un diseño moderno, minimalista, profesional y limpio.
+
+Lineamientos obligatorios:
+
+- Interfaz sencilla y fácil de utilizar.
+- Evitar gradientes.
+- Evitar bordes y líneas decorativas excesivas.
+- Evitar sombras exageradas.
+- Evitar efectos hover molestos.
+- Evitar tipografías pequeñas.
+- Mantener tamaños de texto legibles.
+- Utilizar una jerarquía visual consistente.
+- Mantener espacios adecuados.
+- Evitar dashboards genéricos con demasiadas tarjetas.
+- Priorizar la usabilidad en las operaciones diarias del taller.
+
+### Color principal obligatorio
+
+Utilizar el color:
+
+**#4361ee**
+
+Este será el color primario global de toda la aplicación.
+
+Configurar el color mediante los tokens y variables CSS de shadcn/ui, evitando repetir directamente el código hexadecimal en cada componente.
+
+Aplicarlo coherentemente en:
+
+- Botones principales.
+- Enlaces.
+- Menú activo.
+- Elementos seleccionados.
+- Paginación.
+- Focus rings.
+- Tabs.
+- Indicadores de progreso.
+- Gráficos y elementos interactivos.
+
+### Modo claro y oscuro
+
+Implementar ambos modos:
+
+- Light Mode.
+- Dark Mode.
+
+Permitir cambiar dinámicamente entre ambos y guardar la preferencia del usuario.
+
+El color primario #4361ee debe conservar su identidad en ambos modos, adaptando fondos, superficies, textos y tonos secundarios para mantener contraste y legibilidad.
+
+---
+
+## 10. DataTables y tablas 100 % responsive
+
+Todas las tablas y listados del proyecto deben ser completamente responsive.
+
+Esto aplica a:
+
+- Clientes.
+- Vehículos.
+- Servicios.
+- Productos.
+- Órdenes de trabajo.
+- Ventas.
+- Comprobantes.
+- Reportes.
+- Cualquier otro listado.
+
+### En escritorio
+
+Mostrar las columnas necesarias y mantener una distribución ordenada.
+
+### En tablet
+
+Reducir u ocultar columnas secundarias y reorganizar la información.
+
+### En dispositivos móviles
+
+Implementar obligatoriamente:
+
+- Mostrar las columnas prioritarias.
+- Incorporar un botón `+` al inicio de cada fila.
+- Al pulsar `+`, desplegar debajo de la fila los datos adicionales.
+- Cambiar el botón `+` por `−` al expandir.
+- Permitir contraer nuevamente la información.
+- Mantener accesibles las acciones de ver, editar y eliminar.
+- Evitar que textos largos rompan el diseño.
+- Adaptar filtros, búsqueda y paginación a pantallas pequeñas.
+- Utilizar controles cómodos para dispositivos táctiles.
+
+**No permitir que las tablas generen desplazamiento horizontal de toda la página.**
+
+Crear un componente reutilizable de tabla responsive, con configuración de columnas principales, columnas secundarias y detalles expandibles.
+
+Mantener el mismo patrón visual y de interacción en todos los módulos.
+
+---
+
+## 11. Registro inicial automático del Super Admin (Setup Wizard)
+
+Este requisito es obligatorio y debe implementarse desde la primera fase del proyecto.
+
+Cuando se instala el sistema por primera vez y todavía no existe ningún usuario con rol `super_admin`, **no debe mostrarse directamente el formulario de Login**.
+
+En su lugar, el sistema debe iniciar automáticamente un proceso de configuración inicial para registrar al primer Super Admin.
+
+### 11.1. Verificación inicial
+
+Cuando una persona acceda al sistema:
+
+1. Laravel debe verificar en el backend si existe un usuario con rol `super_admin`.
+2. Si no existe, debe redirigir automáticamente al formulario de registro inicial.
+3. Si ya existe, debe mostrar el Login normalmente.
+
+La comprobación debe realizarse desde el backend y no depender de condiciones controladas por React.
+
+### 11.2. Formulario de registro inicial
+
+Crear una pantalla profesional y sencilla con los siguientes campos:
+
+- Nombres.
+- Apellidos.
+- Correo electrónico.
+- Contraseña.
+- Confirmar contraseña.
+
+Incluir:
+
+- Validación de campos obligatorios.
+- Validación de correo único.
+- Contraseña segura.
+- Confirmación de contraseña.
+- Botón para mostrar u ocultar contraseña.
+- Mensajes de validación claros.
+- Diseño responsive.
+
+### 11.3. Creación del primer Super Admin
+
+Al enviar el formulario:
+
+1. Laravel debe validar nuevamente todos los datos.
+2. Crear el usuario inicial.
+3. Asignarle automáticamente el rol `super_admin` desde el backend.
+4. No permitir seleccionar ni modificar el rol desde el formulario.
+5. Guardar la contraseña mediante el mecanismo seguro de hashing de Laravel.
+6. Iniciar sesión automáticamente después del registro exitoso.
+7. Redirigir al Dashboard o al siguiente paso de configuración inicial.
+
+### 11.4. Bloqueo del registro inicial
+
+Después de crear el primer Super Admin:
+
+- El formulario de registro inicial debe quedar bloqueado.
+- No debe permitirse volver a utilizarlo mediante una URL pública.
+- No debe ser posible crear otro Super Admin manipulando solicitudes HTTP.
+- La comprobación debe ejecutarse siempre en el backend.
+- La creación debe ser segura frente a solicitudes simultáneas.
+
+Utilizar transacciones y mecanismos de bloqueo o protección contra concurrencia para evitar que dos usuarios puedan registrarse como primer Super Admin al mismo tiempo.
+
+### 11.5. Comportamiento después de la instalación
+
+Una vez registrado el primer Super Admin:
+
+- El acceso al sistema debe mostrar el Login.
+- El Super Admin podrá iniciar sesión normalmente.
+- Las rutas del Dashboard estarán protegidas.
+- Los usuarios posteriores se crearán mediante mecanismos autorizados.
+- El registro inicial no volverá a habilitarse mientras exista el Super Admin.
+
+Si se instala nuevamente el sistema con una base de datos nueva y sin usuarios, el proceso de registro inicial debe ejecutarse automáticamente, sin necesidad de modificar el código.
+
+### 11.6. Arquitectura recomendada
+
+Organizar este proceso mediante:
+
+- Middleware de verificación del estado de instalación.
+- Controlador de registro inicial.
+- Servicio para verificar el estado de instalación.
+- Rutas específicas del Setup Wizard.
+- Validaciones mediante Form Requests.
+- Asignación de roles exclusivamente desde el backend.
+- Transacción y protección contra concurrencia.
+
+**Flujo esperado:**
+
+Primera instalación:
+
+Acceso al sistema → Verificación de Super Admin → No existe → Formulario de registro inicial → Crear Super Admin → Inicio de sesión automático → Dashboard.
+
+Instalaciones posteriores:
+
+Acceso al sistema → Verificación de Super Admin → Existe → Login → Autenticación → Dashboard según permisos.
+
+---
+
+## 12. Seguridad y permisos
+
+Considerar:
+
+- Autenticación mediante Laravel.
+- Control de acceso por roles y permisos.
+- Rol Super Admin.
+- Usuarios de cada empresa.
+- Aislamiento multiempresa.
+- Protección de rutas.
+- Validación de solicitudes en backend.
+- Protección de certificados y contraseñas.
+- Protección de credenciales de la API.
+- Registro de operaciones importantes.
+- Validación de acceso a órdenes, ventas y comprobantes.
+- Prevención de acceso a información de otras empresas.
+- Validación de archivos e imágenes subidas.
+- Protección frente a archivos maliciosos y extensiones manipuladas.
+
+No confiar exclusivamente en validaciones del frontend.
+
+---
+
+## 13. Organización del proyecto
+
+Propón una estructura organizada para Laravel y React con Inertia.js.
+
+Considerar:
+
+- Controladores.
+- Servicios.
+- Modelos.
+- Form Requests.
+- Middleware.
+- Policies.
+- Componentes React.
+- Layouts.
+- Páginas Inertia.
+- Hooks reutilizables.
+- Rutas.
+- Migraciones.
+- Validaciones.
+- Manejo centralizado de errores.
+
+Separar la lógica de integración con la API SUNAT de los controladores y componentes visuales.
+
+---
+
+## 14. Plan de implementación por fases
+
+Organiza el desarrollo en fases ordenadas y coherentes.
+
+Como referencia:
+
+**Fase 1. Arquitectura, instalación y configuración inicial**
+- Estructura del proyecto.
+- Configuración de Laravel, React e Inertia.js.
+- MySQL.
+- shadcn/ui.
+- Tailwind CSS.
+- Diseño base.
+- Setup Wizard para registrar el primer Super Admin.
+- Autenticación y permisos.
+
+**Fase 2. Empresas y configuración multiempresa**
+- Empresas.
+- Usuarios.
+- Aislamiento de datos.
+- Configuración fiscal.
+- Certificados.
+- Series de comprobantes.
+
+**Fase 3. Módulos principales**
+- Clientes.
+- Vehículos.
+- Servicios.
+- Productos y repuestos.
+- Carga y gestión de imágenes opcionales de productos.
+
+**Fase 4. Órdenes de trabajo**
+- Registro.
+- Diagnóstico.
+- Servicios.
+- Repuestos.
+- Mano de obra.
+- Estados.
+
+**Fase 5. Ventas**
+- Generación de ventas.
+- Detalles.
+- Pagos.
+- Relación con órdenes.
+
+**Fase 6. Integración SUNAT**
+- Servicio de integración HTTP.
+- Facturas.
+- Boletas.
+- Notas de crédito y débito, según API.
+- Consulta de estado.
+- PDF, XML y CDR.
+- Manejo de errores.
+
+**Fase 7. Historial y reportes**
+- Historial de vehículos.
+- Reportes de ventas.
+- Órdenes.
+- Ingresos.
+- Comprobantes.
+
+**Fase 8. Pruebas y optimización**
+- Pruebas funcionales.
+- Pruebas de integración.
+- Seguridad.
+- Responsive.
+- Rendimiento.
+- Validación de flujos completos.
+- Validación de carga y visualización de imágenes.
+
+Puedes modificar el orden o dividir las fases cuando el análisis técnico lo justifique.
+
+Para cada fase especifica:
+
+- Objetivo.
+- Funcionalidades.
+- Tareas técnicas.
+- Tablas involucradas.
+- Backend.
+- Frontend.
+- Dependencias.
+- Resultado esperado.
+- Criterios para considerar la fase terminada.
+
+---
+
+## 15. Reglas importantes para el análisis
+
+1. No programes todavía.
+2. Primero analiza la colección completa de Postman.
+3. No inventes funcionalidades de la API.
+4. No agregues módulos innecesarios.
+5. Prioriza un sistema sencillo y práctico.
+6. Evita duplicar información entre órdenes, ventas y comprobantes.
+7. Respeta el stack tecnológico indicado.
+8. Utiliza shadcn/ui como biblioteca estándar de interfaz.
+9. Aplica #4361ee como color primario global.
+10. Implementa modo claro y oscuro.
+11. Todas las tablas deben ser responsive y utilizar expansión `+ / −` en móviles.
+12. Cada empresa debe gestionar sus propios datos fiscales y certificados.
+13. Nunca solicites al cliente las credenciales internas de mi API.
+14. No implementes Jobs, Queues ni Workers de Laravel para el envío de comprobantes SUNAT.
+15. Implementa el Setup Wizard para registrar automáticamente al primer Super Admin.
+16. Todos los productos deben admitir una imagen opcional, sin hacer obligatorio este campo.
+17. Las imágenes deben almacenarse en el sistema de archivos y su ruta en MySQL.
+18. Prioriza seguridad, mantenibilidad y facilidad de uso.
+
+---
+
+## 16. Estructura de la respuesta que necesito
+
+Presenta el resultado en el siguiente orden:
+
+1. Resumen ejecutivo del proyecto.
+2. Análisis completo de la colección Postman.
+3. Inventario de endpoints disponibles.
+4. Mapeo de funcionalidades de la API hacia el taller mecánico.
+5. Arquitectura general del sistema.
+6. Módulos funcionales propuestos.
+7. Flujo operativo completo.
+8. Arquitectura de integración con SUNAT.
+9. Configuración fiscal multiempresa.
+10. Estructura de base de datos y relaciones.
+11. Estructura de carpetas del proyecto.
+12. Diseño de interfaces y componentes shadcn/ui.
+13. Estrategia de tablas responsive.
+14. Gestión de imágenes opcionales de productos.
+15. Sistema de autenticación, Setup Wizard y permisos.
+16. Seguridad.
+17. Plan de implementación por fases.
+18. Riesgos técnicos y recomendaciones.
+19. Checklist de funcionalidades para validar el proyecto.
+
+Finaliza con una recomendación de arquitectura y un orden de desarrollo que permita construir primero una versión funcional del taller mecánico y posteriormente completar las funcionalidades adicionales.
+
+**No generes código todavía. El objetivo de esta etapa es obtener un análisis técnico profundo y una hoja de ruta clara antes de comenzar el desarrollo.**
