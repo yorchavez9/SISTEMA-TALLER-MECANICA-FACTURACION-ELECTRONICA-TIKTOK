@@ -1,5 +1,5 @@
-import { Head, router, usePage } from '@inertiajs/react';
-import { Car, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Car, ClipboardPlus, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { ConfirmDialog } from '@/components/app/confirm-dialog';
@@ -14,6 +14,7 @@ import type { DataTableColumn } from '@/components/data-table/responsive-data-ta
 import { ResponsiveDataTable } from '@/components/data-table/responsive-data-table';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { useCan } from '@/hooks/use-can';
 import { formatDateTime } from '@/lib/format';
 import {
     destroy as customersDestroy,
@@ -21,6 +22,7 @@ import {
     show as customersShow,
 } from '@/routes/customers';
 import { destroy as vehiclesDestroy } from '@/routes/vehicles';
+import { create as workOrdersCreate } from '@/routes/work-orders';
 import type { Option } from '@/types';
 
 type Props = {
@@ -99,6 +101,8 @@ export default function CustomerShow({
         errors: Record<string, string>;
     };
 
+    const canCreateOrders = useCan()('work_orders.manage');
+
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deletingCustomer, setDeletingCustomer] = useState(false);
@@ -158,22 +162,40 @@ export default function CustomerShow({
                     title={customer.name}
                     description={customer.document_label}
                     actions={
-                        can.manage && (
+                        (canCreateOrders || can.manage) && (
                             <>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setEditOpen(true)}
-                                >
-                                    <Pencil />
-                                    Editar
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setDeleteOpen(true)}
-                                >
-                                    <Trash2 />
-                                    Eliminar
-                                </Button>
+                                {canCreateOrders && (
+                                    <Button asChild>
+                                        <Link
+                                            href={workOrdersCreate({
+                                                query: {
+                                                    customer: customer.id,
+                                                },
+                                            })}
+                                        >
+                                            <ClipboardPlus />
+                                            Nueva orden
+                                        </Link>
+                                    </Button>
+                                )}
+                                {can.manage && (
+                                    <>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setEditOpen(true)}
+                                        >
+                                            <Pencil />
+                                            Editar
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setDeleteOpen(true)}
+                                        >
+                                            <Trash2 />
+                                            Eliminar
+                                        </Button>
+                                    </>
+                                )}
                             </>
                         )
                     }
@@ -251,8 +273,16 @@ export default function CustomerShow({
                             getRowId={(row) => row.id}
                             caption={`Vehículos de ${customer.name}`}
                             actions={
-                                can.manageVehicles
+                                can.manageVehicles || canCreateOrders
                                     ? (row) => [
+                                          {
+                                              label: 'Nueva orden',
+                                              icon: ClipboardPlus,
+                                              href: workOrdersCreate({
+                                                  query: { vehicle: row.id },
+                                              }),
+                                              hidden: !canCreateOrders,
+                                          },
                                           {
                                               label: 'Editar',
                                               icon: Pencil,
@@ -260,6 +290,7 @@ export default function CustomerShow({
                                                   setEditingVehicle(row);
                                                   setVehicleDialogOpen(true);
                                               },
+                                              hidden: !can.manageVehicles,
                                           },
                                           {
                                               label: 'Eliminar',
@@ -267,6 +298,7 @@ export default function CustomerShow({
                                               variant: 'destructive',
                                               onClick: () =>
                                                   setVehicleToDelete(row),
+                                              hidden: !can.manageVehicles,
                                           },
                                       ]
                                     : undefined
@@ -291,8 +323,9 @@ export default function CustomerShow({
                             }
                         />
                         <p className="text-sm text-muted-foreground">
-                            El historial de servicios de cada vehículo estará
-                            disponible con el módulo de órdenes de trabajo.
+                            Use “Nueva orden” en un vehículo para registrar su
+                            ingreso al taller. El historial completo por
+                            vehículo se incorpora con los reportes.
                         </p>
                     </div>
                 </SectionCard>

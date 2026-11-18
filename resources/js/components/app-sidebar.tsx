@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Building2,
     Car,
+    ClipboardList,
     History,
     LayoutDashboard,
     Package,
@@ -29,6 +30,7 @@ import { index as customersIndex } from '@/routes/customers';
 import { index as productsIndex } from '@/routes/products';
 import { index as servicesIndex } from '@/routes/services';
 import { index as vehiclesIndex } from '@/routes/vehicles';
+import { index as workOrdersIndex } from '@/routes/work-orders';
 import { edit as companyProfile } from '@/routes/company-settings/profile';
 import { index as companyUsers } from '@/routes/company-settings/users';
 import type { NavGroup } from '@/types';
@@ -53,6 +55,12 @@ export function AppSidebar() {
                     title: 'Dashboard',
                     href: dashboard(),
                     icon: LayoutDashboard,
+                },
+                {
+                    title: 'Órdenes de trabajo',
+                    href: workOrdersIndex(),
+                    icon: ClipboardList,
+                    visible: company !== null && can('work_orders.view'),
                 },
             ],
         },

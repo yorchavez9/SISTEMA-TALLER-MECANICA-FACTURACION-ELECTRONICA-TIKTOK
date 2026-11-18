@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CompanyApiLogController;
 use App\Http\Controllers\Admin\CompanyBillingController;
 use App\Http\Controllers\Admin\CompanyContextController;
 use App\Http\Controllers\Admin\CompanyController;
+use App\Http\Controllers\Catalog\CatalogSearchController;
 use App\Http\Controllers\Catalog\CustomerController;
 use App\Http\Controllers\Catalog\ProductController;
 use App\Http\Controllers\Catalog\ServiceController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\CompanySettings\UserController as CompanyUserController
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\Setup\SetupController;
+use App\Http\Controllers\WorkOrders\WorkOrderController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -104,6 +106,25 @@ Route::middleware('auth')->group(function () {
         Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
         Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
         Route::post('products/{product}/stock', [ProductController::class, 'adjustStock'])->middleware('throttle:60,1')->name('products.stock.adjust');
+
+        // Búsquedas para selectores (OT y ventas).
+        Route::middleware('throttle:120,1')->group(function () {
+            Route::get('lookups/services', [CatalogSearchController::class, 'services'])->name('catalog.services');
+            Route::get('lookups/products', [CatalogSearchController::class, 'products'])->name('catalog.products');
+            Route::get('customers/{customer}/vehicles', [CatalogSearchController::class, 'customerVehicles'])->name('customers.vehicles');
+        });
+
+        // Órdenes de trabajo.
+        Route::get('work-orders', [WorkOrderController::class, 'index'])->name('work-orders.index');
+        Route::get('work-orders/create', [WorkOrderController::class, 'create'])->name('work-orders.create');
+        Route::post('work-orders', [WorkOrderController::class, 'store'])->name('work-orders.store');
+        Route::get('work-orders/{workOrder}', [WorkOrderController::class, 'show'])->name('work-orders.show');
+        Route::put('work-orders/{workOrder}', [WorkOrderController::class, 'update'])->name('work-orders.update');
+        Route::post('work-orders/{workOrder}/status', [WorkOrderController::class, 'changeStatus'])->name('work-orders.status');
+        Route::get('work-orders/{workOrder}/print', [WorkOrderController::class, 'print'])->name('work-orders.print');
+        Route::post('work-orders/{workOrder}/items', [WorkOrderController::class, 'storeItem'])->name('work-orders.items.store');
+        Route::put('work-orders/{workOrder}/items/{item}', [WorkOrderController::class, 'updateItem'])->name('work-orders.items.update');
+        Route::delete('work-orders/{workOrder}/items/{item}', [WorkOrderController::class, 'destroyItem'])->name('work-orders.items.destroy');
     });
 
     /*
