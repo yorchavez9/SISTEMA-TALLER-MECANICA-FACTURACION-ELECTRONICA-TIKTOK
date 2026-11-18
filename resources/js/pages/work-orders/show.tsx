@@ -1,5 +1,12 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { CircleAlert, Lock, Pencil, Phone, Printer } from 'lucide-react';
+import {
+    CircleAlert,
+    Lock,
+    Pencil,
+    Phone,
+    Printer,
+    Receipt,
+} from 'lucide-react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { PageContainer, PageHeader } from '@/components/app/page-header';
@@ -8,14 +15,16 @@ import { StatusBadge } from '@/components/app/status-badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { EditHeaderDialog } from '@/components/work-orders/edit-header-dialog';
+import { GenerateSaleDialog } from '@/components/work-orders/generate-sale-dialog';
 import { ItemsEditor } from '@/components/work-orders/items-editor';
+import { WorkOrderSaleCard } from '@/components/work-orders/sale-card';
 import { StatusActions } from '@/components/work-orders/status-actions';
 import { WorkOrderTimeline } from '@/components/work-orders/timeline';
 import type {
     WorkOrderDetail,
     WorkOrderShowProps,
 } from '@/components/work-orders/types';
-import { formatDateTime, formatQuantity } from '@/lib/format';
+import { formatDateTime, formatMoney, formatQuantity } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { show as customerShow } from '@/routes/customers';
 import { index as workOrdersIndex, print, show } from '@/routes/work-orders';
@@ -106,13 +115,24 @@ export default function WorkOrderShow({
     transitions,
     statuses,
     mechanics,
+    sale,
+    paymentMethods,
     can,
 }: Props) {
     const { errors } = usePage().props as { errors: Record<string, string> };
     const [editOpen, setEditOpen] = useState(false);
+    const [saleOpen, setSaleOpen] = useState(false);
 
     const canEdit = can.update && order.editable;
     const overdue = isOverdue(order);
+    const saleVoided = sale?.status === 'voided';
+
+    /** Texto complementario del aviso de orden bloqueada (finalizada). */
+    const finishedHint = !sale
+        ? ' Genere la venta para cobrar y luego marque la orden como entregada.'
+        : saleVoided
+          ? ' La venta anterior fue anulada; puede generar una nueva venta.'
+          : ' Venta registrada. El comprobante electrónico se emite desde la venta.';
 
     return (
         <>
@@ -157,6 +177,15 @@ export default function WorkOrderShow({
                                     Editar datos
                                 </Button>
                             )}
+                            {can.createSale && (
+                                <Button
+                                    className="order-first h-10 w-full sm:order-last sm:w-auto"
+                                    onClick={() => setSaleOpen(true)}
+                                >
+                                    <Receipt />
+                                    Generar venta
+                                </Button>
+                            )}
                             {can.update && (
                                 <StatusActions
                                     order={order}
@@ -187,10 +216,34 @@ export default function WorkOrderShow({
                         <AlertDescription className="text-sm">
                             Los ítems, el diagnóstico y los datos de ingreso
                             quedan bloqueados.
-                            {order.status === 'finished' &&
-                                ' La venta y el comprobante se generan desde la orden finalizada en la siguiente fase.'}
+                            {order.status === 'finished' && finishedHint}
                         </AlertDescription>
                     </Alert>
+                )}
+
+                {can.createSale && (
+                    <section className="flex min-w-0 flex-col gap-4 rounded-xl border border-primary/40 bg-primary/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0 space-y-1">
+                            <h2 className="text-base font-semibold">
+                                Orden finalizada · Total{' '}
+                                <span className="tabular-nums">
+                                    {formatMoney(order.total)}
+                                </span>
+                            </h2>
+                            <p className="text-[0.9375rem] text-muted-foreground">
+                                {saleVoided
+                                    ? 'La venta anterior fue anulada; puede generar una nueva venta.'
+                                    : 'Registre la venta para cobrar al cliente y emitir el comprobante.'}
+                            </p>
+                        </div>
+                        <Button
+                            className="h-10 w-full shrink-0 sm:w-auto"
+                            onClick={() => setSaleOpen(true)}
+                        >
+                            <Receipt />
+                            Generar venta
+                        </Button>
+                    </section>
                 )}
 
                 <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
@@ -234,6 +287,13 @@ export default function WorkOrderShow({
                     </div>
 
                     <div className="grid min-w-0 gap-6">
+                        {sale && (
+                            <WorkOrderSaleCard
+                                sale={sale}
+                                canCreateSale={can.createSale}
+                            />
+                        )}
+
                         <SectionCard title="Cliente y vehículo">
                             <div className="grid gap-5">
                                 <div className="min-w-0 space-y-1">
@@ -366,6 +426,16 @@ export default function WorkOrderShow({
                     mechanics={mechanics}
                     open={editOpen}
                     onOpenChange={setEditOpen}
+                />
+            )}
+
+            {can.createSale && (
+                <GenerateSaleDialog
+                    order={order}
+                    itemsCount={items.length}
+                    paymentMethods={paymentMethods}
+                    open={saleOpen}
+                    onOpenChange={setSaleOpen}
                 />
             )}
         </>

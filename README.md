@@ -12,7 +12,8 @@ El análisis técnico y el plan por fases están en [`docs/ANALISIS-Y-PLAN.md`](
 - [x] **Fase 2:** talleres (super admin), usuarios por taller, aislamiento multiempresa, registro del taller en la API SUNAT (certificado y Clave SOL se reenvían sin guardarse), plan, entorno beta/producción, credenciales cifradas, establecimientos, series y detracción configurable.
 - [x] **Fase 3:** clientes (búsqueda RUC/DNI), vehículos por cliente (placa normalizada), servicios con detracción sugerida, productos y repuestos con imagen opcional (WebP + miniatura) e inventario básico con kardex.
 - [x] **Fase 4:** órdenes de trabajo con numeración por taller, servicios, repuestos y mano de obra, totales con IGV calculados en el servidor, estados con transiciones validadas, historial y hoja imprimible.
-- [ ] Fases 5–8: ventas, comprobantes electrónicos, reportes y pruebas.
+- [x] **Fase 5:** ventas desde la orden finalizada o directas, pago mixto (efectivo, tarjeta, Yape, Plin, transferencia), descuento de stock al vender, anulación con devolución de stock y entrega de la OT con venta registrada.
+- [ ] Fases 6–8: comprobantes electrónicos SUNAT, reportes y pruebas.
 
 ## Instalación local
 

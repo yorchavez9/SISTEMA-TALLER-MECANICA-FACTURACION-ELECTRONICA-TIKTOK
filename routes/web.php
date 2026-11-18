@@ -18,6 +18,7 @@ use App\Http\Controllers\CompanySettings\SeriesController;
 use App\Http\Controllers\CompanySettings\UserController as CompanyUserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LookupController;
+use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Setup\SetupController;
 use App\Http\Controllers\WorkOrders\WorkOrderController;
 use Illuminate\Support\Facades\Route;
@@ -125,6 +126,14 @@ Route::middleware('auth')->group(function () {
         Route::post('work-orders/{workOrder}/items', [WorkOrderController::class, 'storeItem'])->name('work-orders.items.store');
         Route::put('work-orders/{workOrder}/items/{item}', [WorkOrderController::class, 'updateItem'])->name('work-orders.items.update');
         Route::delete('work-orders/{workOrder}/items/{item}', [WorkOrderController::class, 'destroyItem'])->name('work-orders.items.destroy');
+        Route::post('work-orders/{workOrder}/sale', [SaleController::class, 'storeFromWorkOrder'])->middleware('throttle:30,1')->name('work-orders.sale.store');
+
+        // Ventas.
+        Route::get('sales', [SaleController::class, 'index'])->name('sales.index');
+        Route::get('sales/create', [SaleController::class, 'create'])->name('sales.create');
+        Route::post('sales', [SaleController::class, 'store'])->middleware('throttle:30,1')->name('sales.store');
+        Route::get('sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
+        Route::post('sales/{sale}/void', [SaleController::class, 'void'])->name('sales.void');
     });
 
     /*

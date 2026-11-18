@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -97,6 +98,16 @@ class WorkOrder extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Última venta de esta OT (activa o anulada).
+     *
+     * @return HasOne<Sale, $this>
+     */
+    public function sale(): HasOne
+    {
+        return $this->hasOne(Sale::class)->latestOfMany();
     }
 
     /**

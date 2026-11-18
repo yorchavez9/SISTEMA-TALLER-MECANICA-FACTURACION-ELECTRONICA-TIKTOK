@@ -39,6 +39,9 @@ final class RoleRegistry
             'work_orders.view' => 'Ver órdenes de trabajo',
             'work_orders.manage' => 'Registrar órdenes y trabajar en ellas (diagnóstico, ítems, estados)',
             'work_orders.cancel' => 'Cancelar órdenes de trabajo',
+            'sales.view' => 'Ver ventas',
+            'sales.manage' => 'Registrar ventas y cobros',
+            'sales.void' => 'Anular ventas',
         ];
     }
 
@@ -58,11 +61,13 @@ final class RoleRegistry
                 'customers.view', 'customers.manage', 'vehicles.view', 'vehicles.manage',
                 'services.view', 'services.manage', 'products.view', 'products.manage', 'stock.adjust',
                 'work_orders.view', 'work_orders.manage', 'work_orders.cancel',
+                'sales.view', 'sales.manage', 'sales.void',
             ],
             UserRole::Cashier->value => [
                 'customers.view', 'customers.manage', 'vehicles.view', 'vehicles.manage',
                 'services.view', 'products.view',
                 'work_orders.view', 'work_orders.manage', 'work_orders.cancel',
+                'sales.view', 'sales.manage', 'sales.void',
             ],
             UserRole::Mechanic->value => [
                 'customers.view', 'vehicles.view', 'services.view', 'products.view',

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\WorkOrders;
 
+use App\Enums\PaymentMethod;
 use App\Enums\WorkOrderStatus;
+use App\Models\Sale;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\WorkOrders\WorkOrderItemRequest;
 use App\Http\Requests\WorkOrders\WorkOrderRequest;
@@ -111,12 +113,17 @@ class WorkOrderController extends Controller
     {
         Gate::authorize('view', $workOrder);
 
-        $workOrder->load(['customer', 'vehicle', 'assignedUser:id,first_name,last_name', 'creator:id,first_name,last_name', 'items.product:id,stock,unit']);
+        $workOrder->load(['customer', 'vehicle', 'assignedUser:id,first_name,last_name', 'creator:id,first_name,last_name', 'items.product:id,stock,unit', 'sale:id,work_order_id,number,status,total']);
         $status = $workOrder->status;
         $user = $request->user();
 
+        $hasActiveSale = $workOrder->sale !== null && ! $workOrder->sale->isVoided();
+
         $transitions = collect($status->allowedTransitions())
             ->reject(fn (WorkOrderStatus $s) => $s === WorkOrderStatus::Cancelled && ! $user->can('cancel', $workOrder))
+            // Entregar requiere la venta registrada; reabrir no se permite con venta activa.
+            ->reject(fn (WorkOrderStatus $s) => $s === WorkOrderStatus::Delivered && ! $hasActiveSale)
+            ->reject(fn (WorkOrderStatus $s) => $status === WorkOrderStatus::Finished && $s === WorkOrderStatus::InProgress && $hasActiveSale)
             ->map(fn (WorkOrderStatus $s) => ['value' => $s->value, 'label' => $s->label(), 'tone' => $s->tone()])
             ->values();
 
@@ -192,9 +199,19 @@ class WorkOrderController extends Controller
             'statuses' => WorkOrderStatus::options(),
             'mechanics' => WorkOrderRequest::mechanicOptions((int) $this->current->id()),
             'itemTypes' => collect(WorkOrderItem::TYPES)->map(fn ($label, $value) => ['value' => $value, 'label' => $label])->values(),
+            'sale' => $workOrder->sale ? [
+                'id' => $workOrder->sale->id,
+                'code' => $workOrder->sale->code(),
+                'status' => $workOrder->sale->status,
+                'total' => $workOrder->sale->total,
+            ] : null,
+            'paymentMethods' => PaymentMethod::options(),
             'can' => [
                 'update' => $user->can('update', $workOrder),
                 'cancel' => $user->can('cancel', $workOrder),
+                'createSale' => $user->can('create', Sale::class)
+                    && $status === WorkOrderStatus::Finished
+                    && ($workOrder->sale === null || $workOrder->sale->isVoided()),
             ],
         ]);
     }

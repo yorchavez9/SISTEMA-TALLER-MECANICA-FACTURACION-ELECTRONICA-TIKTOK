@@ -6,6 +6,7 @@ import {
     History,
     LayoutDashboard,
     Package,
+    Receipt,
     Settings2,
     Users,
     Wrench,
@@ -28,6 +29,7 @@ import { index as activityLogs } from '@/routes/activity-logs';
 import { index as companiesIndex } from '@/routes/admin/companies';
 import { index as customersIndex } from '@/routes/customers';
 import { index as productsIndex } from '@/routes/products';
+import { index as salesIndex } from '@/routes/sales';
 import { index as servicesIndex } from '@/routes/services';
 import { index as vehiclesIndex } from '@/routes/vehicles';
 import { index as workOrdersIndex } from '@/routes/work-orders';
@@ -61,6 +63,12 @@ export function AppSidebar() {
                     href: workOrdersIndex(),
                     icon: ClipboardList,
                     visible: company !== null && can('work_orders.view'),
+                },
+                {
+                    title: 'Ventas',
+                    href: salesIndex(),
+                    icon: Receipt,
+                    visible: company !== null && can('sales.view'),
                 },
             ],
         },

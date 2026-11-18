@@ -88,7 +88,17 @@ export type WorkOrderShowProps = {
     statuses: StatusOption[];
     mechanics: Option[];
     itemTypes: Option[];
-    can: { update: boolean; cancel: boolean };
+    sale: WorkOrderSale | null;
+    paymentMethods: Option[];
+    can: { update: boolean; cancel: boolean; createSale: boolean };
+};
+
+/** Venta vinculada a la orden (una por orden). */
+export type WorkOrderSale = {
+    id: number;
+    code: string;
+    status: 'registered' | 'voided';
+    total: string;
 };
 
 export type CatalogService = {

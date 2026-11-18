@@ -6,6 +6,7 @@ use App\Enums\IgvAffectation;
 use App\Enums\WorkOrderStatus;
 use App\Models\Company;
 use App\Models\Product;
+use App\Models\Sale;
 use App\Models\Service;
 use App\Models\Vehicle;
 use App\Models\WorkOrder;
@@ -143,6 +144,23 @@ class WorkOrderService
         if ($target === WorkOrderStatus::Finished && ! $order->items()->exists()) {
             throw ValidationException::withMessages([
                 'status' => 'Agregue al menos un servicio, repuesto o mano de obra antes de finalizar.',
+            ]);
+        }
+
+        $activeSale = Sale::query()->withoutGlobalScopes()
+            ->where('work_order_id', $order->id)
+            ->where('status', Sale::STATUS_REGISTERED)
+            ->exists();
+
+        if ($target === WorkOrderStatus::Delivered && ! $activeSale) {
+            throw ValidationException::withMessages([
+                'status' => 'Registre la venta de la orden antes de marcarla como entregada.',
+            ]);
+        }
+
+        if ($from === WorkOrderStatus::Finished && $target === WorkOrderStatus::InProgress && $activeSale) {
+            throw ValidationException::withMessages([
+                'status' => 'La orden ya tiene una venta registrada; anule la venta antes de reabrirla.',
             ]);
         }
 
