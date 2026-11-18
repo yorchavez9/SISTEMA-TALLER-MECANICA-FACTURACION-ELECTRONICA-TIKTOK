@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Middleware\EnsureCompanyContext;
 use App\Http\Middleware\EnsureSystemInstalled;
+use App\Http\Middleware\ResolveCompanyContext;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -27,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             EnsureSystemInstalled::class,
             EnsureUserIsActive::class,
+            ResolveCompanyContext::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
@@ -39,8 +43,16 @@ return Application::configure(basePath: dirname(__DIR__))
             prepend: EnsureSystemInstalled::class,
         );
 
+        // La empresa actual debe fijarse ANTES del route model binding, para que
+        // el global scope multiempresa filtre los modelos de la URL.
+        $middleware->prependToPriorityList(
+            before: SubstituteBindings::class,
+            prepend: ResolveCompanyContext::class,
+        );
+
         $middleware->alias([
             'installed.block' => RedirectIfInstalled::class,
+            'company' => EnsureCompanyContext::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,

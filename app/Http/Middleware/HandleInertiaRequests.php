@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Support\Tenancy\CurrentCompany;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -56,7 +57,34 @@ class HandleInertiaRequests extends Middleware
                 'is_super_admin' => $user?->isSuperAdmin() ?? false,
                 'permissions' => $user ? $user->getAllPermissions()->pluck('name')->values()->all() : [],
             ],
+            'company' => fn () => $this->currentCompany($user),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+
+    /**
+     * Taller en el que se opera (sin datos sensibles).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function currentCompany(?User $user): ?array
+    {
+        $company = app(CurrentCompany::class)->get();
+
+        if ($user === null || $company === null) {
+            return null;
+        }
+
+        $settings = $company->billingSettings;
+
+        return [
+            'id' => $company->id,
+            'ruc' => $company->ruc,
+            'name' => $company->displayName(),
+            'billing_status' => $settings?->status->value,
+            'environment' => $settings?->environment,
+            // true cuando el super admin entró a un taller ajeno.
+            'acting_as_admin' => $user->company_id === null,
         ];
     }
 }

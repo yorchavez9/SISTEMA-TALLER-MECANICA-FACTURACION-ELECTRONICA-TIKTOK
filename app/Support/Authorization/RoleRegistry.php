@@ -25,17 +25,23 @@ final class RoleRegistry
     {
         return [
             'activity_logs.view' => 'Ver el registro de actividad',
+            'company_settings.manage' => 'Configurar el taller (datos fiscales, establecimientos, series, detracción)',
+            'company_users.manage' => 'Administrar los usuarios del taller',
         ];
     }
 
     /**
+     * Permisos reservados al super admin (no se asignan a roles de taller):
+     * certificado, plan, entorno, credenciales y aprovisionamiento. Se
+     * verifican con el rol super_admin.
+     *
      * @return array<string, list<string>> rol => permisos
      */
     public static function rolePermissions(): array
     {
         return [
             UserRole::SuperAdmin->value => [],
-            UserRole::CompanyAdmin->value => ['activity_logs.view'],
+            UserRole::CompanyAdmin->value => ['activity_logs.view', 'company_settings.manage', 'company_users.manage'],
             UserRole::Cashier->value => [],
             UserRole::Mechanic->value => [],
         ];

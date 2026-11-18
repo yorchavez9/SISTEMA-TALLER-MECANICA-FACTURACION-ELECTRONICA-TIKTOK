@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -9,6 +10,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int|null $company_id
  * @property int|null $user_id
  * @property string $action
  * @property string|null $subject_type
@@ -20,9 +22,12 @@ use Illuminate\Support\Carbon;
  */
 class ActivityLog extends Model
 {
+    use BelongsToCompany;
+
     public const UPDATED_AT = null;
 
     protected $fillable = [
+        'company_id',
         'user_id',
         'action',
         'subject_type',

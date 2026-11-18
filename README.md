@@ -9,7 +9,7 @@ El análisis técnico y el plan por fases están en [`docs/ANALISIS-Y-PLAN.md`](
 ## Estado
 
 - [x] **Fase 1:** base del proyecto, Setup Wizard del primer super admin, autenticación, roles, diseño (`#4361ee`, modo claro/oscuro) y tabla responsive.
-- [ ] Fase 2: talleres, usuarios, multiempresa y configuración de la API SUNAT.
+- [x] **Fase 2:** talleres (super admin), usuarios por taller, aislamiento multiempresa, registro del taller en la API SUNAT (certificado y Clave SOL se reenvían sin guardarse), plan, entorno beta/producción, credenciales cifradas, establecimientos, series y detracción configurable.
 - [ ] Fases 3–8: maestros, órdenes de trabajo, ventas, comprobantes electrónicos, reportes y pruebas.
 
 ## Instalación local

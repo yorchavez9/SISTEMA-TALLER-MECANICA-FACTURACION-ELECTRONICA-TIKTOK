@@ -3,6 +3,7 @@
 namespace App\Services\Audit;
 
 use App\Models\ActivityLog;
+use App\Models\Company;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ class ActivityLogger
 
     /**
      * @param  array<string, mixed>  $properties
+     * @param  Company|null  $company  Taller afectado; si es null se usa la empresa actual.
      */
     public function log(
         string $action,
@@ -26,10 +28,12 @@ class ActivityLogger
         ?Model $subject = null,
         array $properties = [],
         ?User $user = null,
+        ?Company $company = null,
     ): ActivityLog {
         $user ??= $this->request->user();
 
         return ActivityLog::create([
+            'company_id' => $company?->id,
             'user_id' => $user?->getKey(),
             'action' => $action,
             'subject_type' => $subject?->getMorphClass(),
