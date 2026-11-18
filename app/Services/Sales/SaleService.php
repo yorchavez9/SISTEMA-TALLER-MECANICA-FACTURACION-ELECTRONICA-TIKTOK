@@ -6,6 +6,7 @@ use App\Enums\IgvAffectation;
 use App\Enums\WorkOrderStatus;
 use App\Models\Company;
 use App\Models\Customer;
+use App\Models\ElectronicDocument;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -132,18 +133,34 @@ class SaleService
     /**
      * Anula una venta sin comprobante aceptado y devuelve el stock.
      */
-    public function void(Sale $sale, string $reason): Sale
+    public function void(Sale $sale, string $reason, bool $fromCreditNote = false): Sale
     {
-        return DB::transaction(function () use ($sale, $reason): Sale {
+        return DB::transaction(function () use ($sale, $reason, $fromCreditNote): Sale {
             /** @var Sale $locked */
-            $locked = Sale::query()->whereKey($sale->id)->lockForUpdate()->firstOrFail();
+            $locked = Sale::query()->withoutGlobalScopes()->whereKey($sale->id)->lockForUpdate()->firstOrFail();
 
             if ($locked->isVoided()) {
                 throw ValidationException::withMessages(['void' => 'La venta ya está anulada.']);
             }
 
-            // Fase 6: aquí se bloqueará la anulación si existe un comprobante
-            // electrónico activo (se anula con nota de crédito).
+            // Con un comprobante electrónico vigente (o sin confirmar) la venta
+            // solo se anula mediante nota de crédito.
+            if (! $fromCreditNote) {
+                $document = ElectronicDocument::query()->withoutGlobalScopes()
+                    ->where('sale_id', $locked->id)
+                    ->whereIn('document_type', ['01', '03'])
+                    ->whereNotNull('issuance_key')
+                    ->first();
+
+                if ($document !== null) {
+                    throw ValidationException::withMessages([
+                        'void' => "La venta tiene el comprobante {$document->fullNumber()} ({$document->local_status->label()}). "
+                            .($document->local_status->value === 'failed'
+                                ? 'Descarte ese intento antes de anular la venta.'
+                                : 'Anúlelo con una nota de crédito.'),
+                    ]);
+                }
+            }
 
             foreach ($locked->items()->where('type', 'product')->whereNotNull('product_id')->get() as $item) {
                 $product = Product::query()->withTrashed()->find($item->product_id);

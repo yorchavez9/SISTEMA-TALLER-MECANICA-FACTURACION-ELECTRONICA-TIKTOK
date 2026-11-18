@@ -1,5 +1,5 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { Ban, CircleAlert, FileText, ListX } from 'lucide-react';
+import { Ban, CircleAlert, Info, ListX } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { EmptyState } from '@/components/app/empty-state';
@@ -8,6 +8,12 @@ import { SectionCard } from '@/components/app/section-card';
 import { StatusBadge } from '@/components/app/status-badge';
 import type { DataTableColumn } from '@/components/data-table/responsive-data-table';
 import { ResponsiveDataTable } from '@/components/data-table/responsive-data-table';
+import { DocumentPanel } from '@/components/documents/document-panel';
+import { isActiveDocument } from '@/components/documents/types';
+import type {
+    EmissionOptions,
+    SaleDocument,
+} from '@/components/documents/types';
 import { FormField } from '@/components/forms/form-field';
 import InputError from '@/components/input-error';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -79,7 +85,9 @@ type Props = {
     sale: SaleDetail;
     items: SaleItemRow[];
     payments: PaymentRow[];
-    can: { void: boolean };
+    documents: SaleDocument[];
+    emission: EmissionOptions;
+    can: { void: boolean; issue: boolean; creditNote: boolean };
 };
 
 const MIN_REASON_LENGTH = 5;
@@ -306,11 +314,20 @@ function VoidSaleDialog({
     );
 }
 
-export default function SaleShow({ sale, items, payments, can }: Props) {
+export default function SaleShow({
+    sale,
+    items,
+    payments,
+    documents,
+    emission,
+    can,
+}: Props) {
     const { errors } = usePage().props as { errors: Record<string, string> };
     const [voidOpen, setVoidOpen] = useState(false);
 
     const voided = sale.status === 'voided';
+    // Con comprobante vigente la venta solo se anula con nota de crédito.
+    const hasActiveDocument = documents.some(isActiveDocument);
     const totalPaid = payments.reduce(
         (sum, payment) => sum + Number(payment.amount),
         0,
@@ -337,7 +354,7 @@ export default function SaleShow({ sale, items, payments, can }: Props) {
                         </span>
                     }
                     actions={
-                        can.void && (
+                        can.void ? (
                             <Button
                                 variant="outline"
                                 className="h-10 text-destructive-foreground"
@@ -346,6 +363,14 @@ export default function SaleShow({ sale, items, payments, can }: Props) {
                                 <Ban />
                                 Anular venta
                             </Button>
+                        ) : (
+                            !voided &&
+                            hasActiveDocument && (
+                                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Info className="size-4 shrink-0" />
+                                    Anule el comprobante con nota de crédito
+                                </p>
+                            )
                         )
                     }
                 />
@@ -520,22 +545,12 @@ export default function SaleShow({ sale, items, payments, can }: Props) {
                             )}
                         </SectionCard>
 
-                        <SectionCard title="Comprobante electrónico">
-                            <div className="grid gap-4">
-                                <p className="text-sm text-muted-foreground">
-                                    La emisión de factura o boleta electrónica
-                                    se habilita en la siguiente fase.
-                                </p>
-                                <Button
-                                    variant="outline"
-                                    className="h-10 w-full sm:w-auto sm:justify-self-start"
-                                    disabled
-                                >
-                                    <FileText />
-                                    Emitir comprobante
-                                </Button>
-                            </div>
-                        </SectionCard>
+                        <DocumentPanel
+                            sale={sale}
+                            documents={documents}
+                            emission={emission}
+                            can={can}
+                        />
                     </div>
                 </div>
             </PageContainer>

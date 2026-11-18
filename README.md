@@ -13,7 +13,8 @@ El análisis técnico y el plan por fases están en [`docs/ANALISIS-Y-PLAN.md`](
 - [x] **Fase 3:** clientes (búsqueda RUC/DNI), vehículos por cliente (placa normalizada), servicios con detracción sugerida, productos y repuestos con imagen opcional (WebP + miniatura) e inventario básico con kardex.
 - [x] **Fase 4:** órdenes de trabajo con numeración por taller, servicios, repuestos y mano de obra, totales con IGV calculados en el servidor, estados con transiciones validadas, historial y hoja imprimible.
 - [x] **Fase 5:** ventas desde la orden finalizada o directas, pago mixto (efectivo, tarjeta, Yape, Plin, transferencia), descuento de stock al vender, anulación con devolución de stock y entrega de la OT con venta registrada.
-- [ ] Fases 6–8: comprobantes electrónicos SUNAT, reportes y pruebas.
+- [x] **Fase 6:** facturas y boletas electrónicas desde la venta (HTTP directo a la API, sin colas), protección contra duplicados y timeouts (verificación antes de reintentar), detracción con tipo y % elegidos al emitir, consulta de estado, descargas PDF/XML/CDR, nota de crédito de anulación y tarea programada que solo consulta estados.
+- [ ] Fases 7–8: dashboard, historial por vehículo, reportes y pruebas finales.
 
 ## Instalación local
 

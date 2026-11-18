@@ -142,6 +142,46 @@ class SunatApiClient
     }
 
     /**
+     * Descarga un archivo (PDF, XML, CDR). Devuelve el contenido binario y su
+     * tipo; si la API responde JSON con error, lanza la excepción tipada.
+     *
+     * @param  array<string, mixed>  $query
+     * @return array{body: string, content_type: string}
+     */
+    public function download(string $path, array $query = [], string $operation = 'download'): array
+    {
+        $url = config('sunat_api.base_url').'/'.ltrim($path, '/');
+        $started = hrtime(true);
+        $response = null;
+        $exception = null;
+
+        try {
+            $response = $this->request()->withHeaders(['Accept' => '*/*'])->get($url, $query);
+            $contentType = (string) $response->header('Content-Type');
+
+            if ($response->failed() || str_contains($contentType, 'application/json')) {
+                // Errores (o respuestas JSON inesperadas) se interpretan como el resto.
+                $this->interpret($response);
+
+                throw new SunatApiException('La API no devolvió el archivo solicitado.', $response->status(), errorType: 'unexpected_response');
+            }
+
+            return ['body' => $response->body(), 'content_type' => $contentType ?: 'application/octet-stream'];
+        } catch (ConnectionException $e) {
+            $exception = new ApiConnectionException('No se obtuvo respuesta de la API de facturación.', errorType: 'connection', previous: $e);
+
+            throw $exception;
+        } catch (SunatApiException $e) {
+            $exception = $e;
+
+            throw $e;
+        } finally {
+            // El cuerpo binario no se guarda en el log (LogSanitizer lo omite).
+            $this->log($operation, 'GET', '/'.ltrim($path, '/'), $query, $response, $exception, $started);
+        }
+    }
+
+    /**
      * Healthcheck de la API (fuera de /v1, sin credenciales).
      */
     public function health(): ApiResponse

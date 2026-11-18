@@ -2,8 +2,15 @@
 
 namespace App\Http\Controllers\Sales;
 
+use App\Enums\DocumentType;
+use App\Enums\IdentityDocumentType;
 use App\Enums\PaymentMethod;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Documents\ElectronicDocumentController;
+use App\Models\DetractionType;
+use App\Models\DocumentSeries;
+use App\Models\ElectronicDocument;
+use App\Services\Sales\DetractionCalculator;
 use App\Http\Requests\Sales\SaleRequest;
 use App\Models\Customer;
 use App\Models\Sale;
@@ -24,6 +31,7 @@ class SaleController extends Controller
     public function __construct(
         private readonly SaleService $sales,
         private readonly CurrentCompany $current,
+        private readonly DetractionCalculator $detraction,
     ) {}
 
     public function index(Request $request): Response
@@ -125,6 +133,9 @@ class SaleController extends Controller
 
         $sale->load(['customer', 'workOrder.vehicle', 'items', 'payments', 'creator:id,first_name,last_name', 'voider:id,first_name,last_name']);
 
+        $documents = $sale->electronicDocuments()->with('notes')->orderByDesc('id')->get();
+        $activeDocument = $documents->first(fn (ElectronicDocument $d) => $d->issuance_key !== null);
+
         return Inertia::render('sales/show', [
             'sale' => [
                 'id' => $sale->id,
@@ -174,8 +185,51 @@ class SaleController extends Controller
                 'reference' => $p->reference,
                 'paid_at' => $p->paid_at->toIso8601String(),
             ]),
-            'can' => ['void' => $request->user()->can('void', $sale) && ! $sale->isVoided()],
+            'documents' => $documents->map(fn (ElectronicDocument $d) => [
+                ...ElectronicDocumentController::row($d),
+                'notes' => $d->notes->map(fn (ElectronicDocument $n) => ElectronicDocumentController::row($n))->values(),
+            ])->values(),
+            'emission' => $this->emissionOptions($sale, $activeDocument !== null),
+            'can' => [
+                'void' => $request->user()->can('void', $sale) && ! $sale->isVoided() && $activeDocument === null,
+                'issue' => $request->user()->can('documents.issue'),
+                'creditNote' => $request->user()->can('documents.credit_note'),
+            ],
         ]);
+    }
+
+    /**
+     * Opciones para el diálogo "Emitir comprobante".
+     *
+     * @return array<string, mixed>
+     */
+    private function emissionOptions(Sale $sale, bool $hasActiveDocument): array
+    {
+        $company = $this->current->getOrFail()->load('billingSettings');
+        $settings = $company->billingSettings;
+        $customer = $sale->customer;
+
+        $series = DocumentSeries::query()
+            ->where('is_active', true)
+            ->whereIn('document_type', [DocumentType::Invoice->value, DocumentType::Receipt->value])
+            ->orderBy('series')
+            ->get(['id', 'document_type', 'series', 'last_number']);
+
+        return [
+            'available' => ! $sale->isVoided() && ! $hasActiveDocument,
+            'ready' => $settings?->isReady() ?? false,
+            'environment' => $settings?->environment,
+            'nrus' => $settings?->tax_regime === 'rus',
+            'customer_has_ruc' => $customer->document_type === IdentityDocumentType::Ruc && filled($customer->document_number),
+            'customer_identified' => $customer->document_type !== IdentityDocumentType::None && filled($customer->document_number),
+            'series' => [
+                '01' => $series->where('document_type', DocumentType::Invoice)->map(fn (DocumentSeries $s) => ['value' => (string) $s->id, 'label' => $s->series.' (siguiente: '.($s->last_number + 1).')'])->values(),
+                '03' => $series->where('document_type', DocumentType::Receipt)->map(fn (DocumentSeries $s) => ['value' => (string) $s->id, 'label' => $s->series.' (siguiente: '.($s->last_number + 1).')'])->values(),
+            ],
+            'detraction' => $this->detraction->suggestion($sale, $company),
+            'detractionTypes' => DetractionType::query()->where('is_active', true)->orderByDesc('is_default')->orderBy('code')->get()
+                ->map(fn (DetractionType $t) => ['value' => (string) $t->id, 'label' => "{$t->code} · {$t->description}", 'rate' => $t->rate])->values(),
+        ];
     }
 
     public function void(Request $request, Sale $sale): RedirectResponse

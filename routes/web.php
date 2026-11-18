@@ -17,6 +17,7 @@ use App\Http\Controllers\CompanySettings\ProfileController as CompanyProfileCont
 use App\Http\Controllers\CompanySettings\SeriesController;
 use App\Http\Controllers\CompanySettings\UserController as CompanyUserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Documents\ElectronicDocumentController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Setup\SetupController;
@@ -134,6 +135,19 @@ Route::middleware('auth')->group(function () {
         Route::post('sales', [SaleController::class, 'store'])->middleware('throttle:30,1')->name('sales.store');
         Route::get('sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
         Route::post('sales/{sale}/void', [SaleController::class, 'void'])->name('sales.void');
+
+        // Comprobantes electrónicos (sin colas: HTTP directo a la API).
+        Route::get('documents', [ElectronicDocumentController::class, 'index'])->name('documents.index');
+        Route::post('sales/{sale}/documents', [ElectronicDocumentController::class, 'issue'])->middleware('throttle:20,1')->name('documents.issue');
+        Route::prefix('documents/{document}')->name('documents.')->middleware('throttle:60,1')->group(function () {
+            Route::post('refresh', [ElectronicDocumentController::class, 'refresh'])->name('refresh');
+            Route::post('verify', [ElectronicDocumentController::class, 'verify'])->name('verify');
+            Route::post('retry', [ElectronicDocumentController::class, 'retry'])->name('retry');
+            Route::post('resend', [ElectronicDocumentController::class, 'resend'])->name('resend');
+            Route::delete('/', [ElectronicDocumentController::class, 'discard'])->name('discard');
+            Route::post('credit-note', [ElectronicDocumentController::class, 'creditNote'])->name('credit-note');
+            Route::get('files/{kind}', [ElectronicDocumentController::class, 'file'])->whereIn('kind', ['pdf', 'xml', 'cdr'])->name('file');
+        });
     });
 
     /*

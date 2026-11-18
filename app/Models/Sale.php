@@ -102,6 +102,16 @@ class Sale extends Model
     }
 
     /**
+     * Comprobantes (factura/boleta) emitidos para la venta, incluidos los fallidos.
+     *
+     * @return HasMany<ElectronicDocument, $this>
+     */
+    public function electronicDocuments(): HasMany
+    {
+        return $this->hasMany(ElectronicDocument::class)->whereIn('document_type', ['01', '03']);
+    }
+
+    /**
      * @return HasMany<SalePayment, $this>
      */
     public function payments(): HasMany

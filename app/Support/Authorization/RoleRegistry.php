@@ -42,6 +42,9 @@ final class RoleRegistry
             'sales.view' => 'Ver ventas',
             'sales.manage' => 'Registrar ventas y cobros',
             'sales.void' => 'Anular ventas',
+            'documents.view' => 'Ver comprobantes electrónicos y descargar PDF/XML/CDR',
+            'documents.issue' => 'Emitir facturas y boletas electrónicas',
+            'documents.credit_note' => 'Emitir notas de crédito (anulación)',
         ];
     }
 
@@ -62,12 +65,14 @@ final class RoleRegistry
                 'services.view', 'services.manage', 'products.view', 'products.manage', 'stock.adjust',
                 'work_orders.view', 'work_orders.manage', 'work_orders.cancel',
                 'sales.view', 'sales.manage', 'sales.void',
+                'documents.view', 'documents.issue', 'documents.credit_note',
             ],
             UserRole::Cashier->value => [
                 'customers.view', 'customers.manage', 'vehicles.view', 'vehicles.manage',
                 'services.view', 'products.view',
                 'work_orders.view', 'work_orders.manage', 'work_orders.cancel',
                 'sales.view', 'sales.manage', 'sales.void',
+                'documents.view', 'documents.issue', 'documents.credit_note',
             ],
             UserRole::Mechanic->value => [
                 'customers.view', 'vehicles.view', 'services.view', 'products.view',

@@ -3,6 +3,7 @@ import {
     Building2,
     Car,
     ClipboardList,
+    FileText,
     History,
     LayoutDashboard,
     Package,
@@ -28,6 +29,7 @@ import { dashboard } from '@/routes';
 import { index as activityLogs } from '@/routes/activity-logs';
 import { index as companiesIndex } from '@/routes/admin/companies';
 import { index as customersIndex } from '@/routes/customers';
+import { index as documentsIndex } from '@/routes/documents';
 import { index as productsIndex } from '@/routes/products';
 import { index as salesIndex } from '@/routes/sales';
 import { index as servicesIndex } from '@/routes/services';
@@ -69,6 +71,12 @@ export function AppSidebar() {
                     href: salesIndex(),
                     icon: Receipt,
                     visible: company !== null && can('sales.view'),
+                },
+                {
+                    title: 'Comprobantes',
+                    href: documentsIndex(),
+                    icon: FileText,
+                    visible: company !== null && can('documents.view'),
                 },
             ],
         },

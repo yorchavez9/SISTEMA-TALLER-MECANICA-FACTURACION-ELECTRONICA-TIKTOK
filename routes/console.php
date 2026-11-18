@@ -20,3 +20,9 @@ Artisan::command('sunat:prune-api-logs', function () {
 })->purpose('Elimina los registros de llamadas a la API SUNAT más antiguos que la retención configurada');
 
 Schedule::command('sunat:prune-api-logs')->dailyAt('03:00')->withoutOverlapping();
+
+/*
+| Consulta de estados de comprobantes pendientes o sin confirmar (solo GET).
+| Requiere el cron del Scheduler: * * * * * php artisan schedule:run
+*/
+Schedule::command('sunat:sync-pending')->everyFiveMinutes()->withoutOverlapping();
